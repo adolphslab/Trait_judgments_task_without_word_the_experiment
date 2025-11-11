@@ -2,7 +2,7 @@
 
 By **Yue Xu** · <yxu7@caltech.edu>
 
-_Last verified: **Nov 10, 2025**
+_Last verified: **Nov 10, 2025**_
 
 ---
 
@@ -18,9 +18,10 @@ The repository demonstrates:
 * Several end-task questionnaires in multiple formats
 * Gatekeeping is implemented at each step: participants must meet specific criteria to proceed to the next stage.
 
-> **Note:** The **Cambridge Face Memory Test (CFMT)** and **Multi-Arrangement (MA) task** are not included here due to external hosting.  
-> See *Experimental_Paradigm.pdf* for a detailed walkthrough, screenshots, and demo links.  
-> Data analysis scripts and datasets are available on the [OSF project files](https://osf.io/nm7y8/files) and the [Github repo](https://github.com/hyue723/Trait_judgments_task_without_word).
+> **Note:** 
+> - The **Cambridge Face Memory Test (CFMT)** and **Multi-Arrangement (MA) task** are not included here due to external hosting.  
+> - See *Experimental_Paradigm.pdf* for a detailed walkthrough, screenshots, and demo links.  
+> - Data analysis scripts and datasets are available on the [OSF project files](https://osf.io/nm7y8/files) and the [Github repo](https://github.com/hyue723/Trait_judgments_task_without_word).
 
 ---
 
@@ -120,7 +121,7 @@ If any are missing, they default to `"XXXXXXXnotValid"`.
 ---
 
 ## How to Cite
-If you use this experiment framework or adapt its code, please cite the associated manuscript(s) from this project ([osf](https://osf.io/preprints/psyarxiv/ne6w2_v2)).
+If you use this experiment framework or adapt its code, please cite the associated manuscript(s) from this project ([osf preprint](https://osf.io/preprints/psyarxiv/ne6w2_v2)).
 
 ---
 
