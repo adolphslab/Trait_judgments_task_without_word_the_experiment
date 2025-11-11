@@ -1,0 +1,17 @@
+"rt","response","task","url","Participant_id","Assignment_id_from_URL","Project_id_from_URL","Meadows_id_from_URL","start_time","trial_type","trial_index","time_elapsed","internal_node_id","question_order","stimulus","slider_start"
+"49884","{""age"":""23"",""language"":""English"",""gender"":""woman"",""hand"":""left"",""education"":""bachelor"",""ANES_politics"":""4"",""demographic_check_item1"":""no_computer"",""strategy_used"":""ee"",""trait_used"":""dd""}","demographic_survey_p1","https://www.yxu.caltech.edu/experiment_demo/MA_experiment_demo/end_task_questionnaire.html","ParticipantIDnotValid","AssignmentIDnotValid","ProjectIDnotValid","MeadowsIDnotValid","Sun, 09 Nov 2025 00:10:44 GMT","survey-html-form","0","49885","0.0-0.0","","",""
+"26009","{""race_white"":""white"",""rank_white"":""1"",""race_other_text"":"""",""hispanic"":""no"",""close_white"":""0"",""close_asian"":""10"",""close_black"":""30"",""white_childhood"":""5"",""white_adolescence"":""4"",""white_adulthood"":""3"",""asian_childhood"":""3"",""asian_adolescence"":""3"",""asian_adulthood"":""3"",""black_childhood"":""4"",""black_adolescence"":""4"",""black_adulthood"":""2"",""entertainment_white"":""1"",""entertainment_black"":""1"",""entertainment_asian"":""2""}","demographic_survey_p2","","","","","","","survey-html-form","1","75896","0.0-1.0","","",""
+"11003","{""lay_theory_1"":1,""colorblind"":2,""lay_theory_6"":2,""Custom"":2,""lay_theory_7"":2,""lay_theory_3"":2,""Bayesian_Racism_Scale"":2}","race_ideology_trials","","","","","","","survey-likert","2","86903","0.0-2.0","[3,2,5,1,6,4,0]","",""
+"4587","0","instruction_race_thermometer","","","","","","","html-button-response","3","91492","0.0-3.0","","<p align=""left"">(Page 4/4) For the last three questions, please rate your feelings toward each group - White, Black, and Asian - on a scale from 0 (Very Cold or Unfavorable) to 100 (Very Warm or Favorable).</p>
+                <p align=""left"">NOTE: You must move the slider to continue to the next question. The slider starts at 50, so if your answer is 50, please move the slider and then return it to 50 to proceed.</p>
+                ",""
+"2217","28","race_therm_white","","","","","","","html-slider-response","4","93711","0.0-4.0-0.0","","<div>
+                <p>Please rate your overall feelings toward the following racial group:</p><p><strong>White</strong></p>
+                </div>","50"
+"1694","71","race_therm_asian","","","","","","","html-slider-response","5","95407","0.0-4.0-0.1","","<div>
+                <p>Please rate your overall feelings toward the following racial group:</p><p><strong>Asian</strong></p>
+                </div>","50"
+"1498","48","race_therm_black","","","","","","","html-slider-response","6","96907","0.0-4.0-0.2","","<div>
+                <p>Please rate your overall feelings toward the following racial group:</p><p><strong>Black</strong></p>
+                </div>","50"
+"7919","{""feedback"":""d"",""browser"":""cc""}","feedback_page","","","","","","","survey-html-form","7","104827","0.0-5.0","","",""

@@ -1,0 +1,607 @@
+<!--
+  File: end_task_questionnaire.html
+  Purpose: After completing the entire experiment, participants are asked to complete a set of questionnaires.
+  Author: Yue Xu, yxu7@caltech.edu
+  Last Updated: November 5, 2025
+  Notes:
+    - The functions (each often defines a webpage) are organized in timeline order of the experiment. 
+    - The completion URL in the end of study page should be updated with the actual completion link before deployment.
+    - This file saves a data file as csv and an event data file that saves participants' actions to focus on the current webppage or move to other webpages. The event data file will be empty if the participant did not move away from the experiment webpage.
+-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MA_qualification_task</title>
+        <script src="jspsych-7.2.3/jspsych.js"></script>
+        <script src="jspsych-7.2.3/plugin-survey-html-form.js"></script>
+        <script src="jspsych-7.2.3/plugin-survey-likert.js"></script>
+        <script src="jspsych-7.2.3/plugin-html-slider-response.js"></script>
+        <script src="jspsych-7.2.3/plugin-html-keyboard-response.js"></script>
+        <script src="jspsych-7.2.3/plugin-html-button-response.js"></script>
+        <link href="jspsych-7.2.3/jspsych.css" rel="stylesheet" type="text/css">
+        <style type="text/css">
+            /* define custom background color and text color */
+            .jspsych-display-element {
+                color: black;
+                background-color: rgb(221,221,221);
+            }
+            
+            /* center the content and set a max width */
+            .jspsych-content {
+                width: 900px;
+                margin-left: auto; 
+                margin-right: auto;
+            }
+
+            .surveyQuestion {
+                margin: 0 auto; 
+                margin-top: 5px;
+                border-radius: 25px;
+                background-color: #ccc;
+                padding: 5px;
+                color: black;
+                line-height: 100%;
+                text-align: left;
+            }
+
+            #survey {
+                max-width: 900px;
+                font-size: 14pt;
+                display: none;
+            }
+
+            .rating-group {
+                border-collapse: collapse;
+                border: 2px solid rgb(165, 163, 163);
+                padding: 10px;
+            }
+
+            /* custom table style for "close-relationship" questions */
+            .q5-table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            .q5-table th, .q5-table td {
+                border: 1px solid rgb(165, 163, 163);
+                padding: 8px;
+                text-align: center;
+            }
+            .q5-table th.group-header {
+                text-align: left;
+            }
+
+        </style>
+    </head>
+    <body>
+    </body>
+    <script type="text/javascript">
+
+        /* create timeline */
+        var timeline = [];
+        var jsPsych = initJsPsych({})
+        
+        /* placeholder variables for URL parameters */
+        var Assignment_id_from_URL;
+        var Project_id_from_URL;
+        var Participant_id;
+
+        /* get URL parameters */
+        var Participant_id = jsPsych.data.getURLVariable('participantId');
+        if (typeof Participant_id === "undefined") {
+            Participant_id = "ParticipantIDnotValid";
+        }
+
+        var Assignment_id_from_URL = jsPsych.data.getURLVariable('assignmentId');
+        if (typeof Assignment_id_from_URL === "undefined") {
+            Assignment_id_from_URL = "AssignmentIDnotValid";
+        }
+
+        var Project_id_from_URL = jsPsych.data.getURLVariable('projectId');
+        if (typeof Project_id_from_URL === "undefined") {
+            Project_id_from_URL = "ProjectIDnotValid";
+        }
+
+        var Meadows_id_from_URL = jsPsych.data.getURLVariable('mead_name');
+        if (typeof Meadows_id_from_URL === "undefined") {
+            Meadows_id_from_URL = "MeadowsIDnotValid";
+        }
+
+        var url = window.location.href;
+        var start_time = new Date();
+
+        var demographic_survey_p1 = {
+            type: jsPsychSurveyHtmlForm,
+            button_label: 'Continue',
+            html: function() {
+                return (` 
+                <p align="left">For this last part of the study, you will fill out a questionnaire. Please do not refresh the webpage or go back to previous webpages.</p>
+                <p align="left" style="font-size: 14pt; text-decoration: underline">(Page 1/4) Please complete all questions before going to the next page.</p>
+            
+                <div class="surveyQuestion">
+                    <p><strong>
+                        How old are you?
+                    </strong> </p>
+                    <p><input type="number" id="age-resp-box" name="age" min="18" required></p>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        What is your first language?
+                    </strong> </p>
+                    <p><input type="text" name="language" required></p>
+	            </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        What is your gender?
+                    </strong> </p>
+                    <p><input type="radio" name="gender" value="man" required> Man</p>
+                    <p><input type="radio" name="gender" value="woman" required> Woman</p>
+                    <p><input type="radio" name="gender" value="non-binary" required> Non-binary</p>
+                    <p><input type="radio" name="gender" value="other" required> Other</p>
+                    <p><input type="radio" name="gender" value="nosay" required> Prefer not to say</p>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        Which hand do you prefer for daily tasks?
+                    </strong> </p>
+                    <p><input type="radio" name="hand" value="right" required> Right</p>
+                    <p><input type="radio" name="hand" value="left" required> Left</p>
+                    <p><input type="radio" name="hand" value="mixed" required> Mixed</p>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        What is the highest level of education you have completed?
+                    </strong> </p>
+                    <p><input type="radio" name="education" value="less highschool" required> Less than high school credential</p>
+                    <p><input type="radio" name="education" value="highschool" required> High school credential</p>
+                    <p><input type="radio" name="education" value="post highschool" required> Some post-high-school, no bachelor's degree</p>
+                    <p><input type="radio" name="education" value="bachelor" required> Bachelor's degree</p>
+                    <p><input type="radio" name="education" value="graduate" required> Graduate degree</p>
+                    <p><input type="radio" name="education" value="nosay" required> Prefer not to say</p>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        Where would you place yourself on this scale?
+                    </strong> </p>
+                    <p><input type="radio" name="ANES_politics" value="1" required> 1 = Extremely liberal</p>
+                    <p><input type="radio" name="ANES_politics" value="2" required> 2 = Liberal</p>
+                    <p><input type="radio" name="ANES_politics" value="3" required> 3 = Slightly liberal</p>
+                    <p><input type="radio" name="ANES_politics" value="4" required> 4 = Moderate; middle of the road</p>
+                    <p><input type="radio" name="ANES_politics" value="5" required> 5 = Slightly conservative</p>
+                    <p><input type="radio" name="ANES_politics" value="6" required> 6 = Conservative</p>
+                    <p><input type="radio" name="ANES_politics" value="7" required> 7 = Extremely conservative</p>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        Which of these do you identify as?
+                    </strong> </p>
+                    <p><input type="radio" name="demographic_check_item1" value="fourteen_months" required> I work fourteen months in a year</p>
+                    <p><input type="radio" name="demographic_check_item1" value="no_computer" required> I have never used a computer</p>
+                    <p><input type="radio" name="demographic_check_item1" value="left_handed" required> I am left-handed</p>
+                    <p><input type="radio" name="demographic_check_item1" value="none" required> None of the above</p>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        What strategies did you use to arrange the faces in the arena? What was it about a face that made you put it closer to, or further from, other faces?
+                    </strong></p>
+                    <textarea name="strategy_used" rows="3" cols="60" required></textarea>
+	            </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        What traits of a person did you think about when you were arranging the faces? (please list all of them)
+                    </strong></p>
+                    <textarea name="trait_used" rows="3" cols="60" required></textarea>
+	            </div>
+                <br>`);
+            },
+            data: {
+                task: 'demographic_survey_p1',
+                url: url,
+                Participant_id: Participant_id,
+                Assignment_id_from_URL: Assignment_id_from_URL,
+                Project_id_from_URL: Project_id_from_URL,
+                Meadows_id_from_URL: Meadows_id_from_URL,
+                start_time: start_time.toUTCString(),
+            }
+        };
+
+        var demographic_survey_p2 = {
+            type: jsPsychSurveyHtmlForm,
+            button_label: 'Continue',
+            html: function() {
+                return (`
+                <p align="left" style="font-size: 14pt; text-decoration: underline">(Page 2/4) Please complete all questions.</p>
+                <div class="surveyQuestion">
+                <p><strong>Which racial group(s) do you identify with?</strong></p>
+                <p><i>Select all that apply, and rank them based on how central each is to your identity (1 = most central). You may assign the same rank to more than one group if they are equally central.</i></p>
+                <table>
+                    <colgroup>
+                        <col style="width: 50%;">
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                    </colgroup>
+                    <tr>
+                    <th>Racial Group</th>
+                    <th>Select</th>
+                    <th>Rank</th>
+                    </tr>
+                    <tr>
+                    <td>White or European American</td>
+                    <td><input type="checkbox" id="chk_white" name="race_white" value="white" onchange="toggleRank('chk_white', 'rank_white')"></td>
+                    <td><input type="number" id="rank_white" name="rank_white" min="1" max="6" style="width: 50px;" disabled required></td>
+                    </tr>
+                    <tr>
+                    <td>Black or African American</td>
+                    <td><input type="checkbox" id="chk_black" name="race_black" value="black" onchange="toggleRank('chk_black', 'rank_black')"></td>
+                    <td><input type="number" id="rank_black" name="rank_black" min="1" max="6" style="width: 50px;" disabled required></td>
+                    </tr>
+                    <tr>
+                    <td>Asian</td>
+                    <td><input type="checkbox" id="chk_asian" name="race_asian" value="asian" onchange="toggleRank('chk_asian', 'rank_asian')"></td>
+                    <td><input type="number" id="rank_asian" name="rank_asian" min="1" max="6" style="width: 50px;" disabled required></td>
+                    </tr>
+                    <tr>
+                    <td>American Indian or Alaska Native</td>
+                    <td><input type="checkbox" id="chk_native" name="race_native" value="native" onchange="toggleRank('chk_native', 'rank_native')"></td>
+                    <td><input type="number" id="rank_native" name="rank_native" min="1" max="6" style="width: 50px;" disabled required></td>
+                    </tr>
+                    <tr>
+                    <td>Native Hawaiian or Other Pacific Islander</td>
+                    <td><input type="checkbox" id="chk_pacific" name="race_pacific" value="pacific" onchange="toggleRank('chk_pacific', 'rank_pacific')"></td>
+                    <td><input type="number" id="rank_pacific" name="rank_pacific" min="1" max="6" style="width: 50px;" disabled required></td>
+                    </tr>
+                    <tr>
+                    <td>Other (please specify): <input type="text" name="race_other_text"></td>
+                    <td><input type="checkbox" id="chk_other" name="race_other" value="other" onchange="toggleRank('chk_other', 'rank_other')"></td>
+                    <td><input type="number" id="rank_other" name="rank_other" min="1" max="6" style="width: 50px;" disabled required></td>
+                    </tr>
+                </table>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        Are you of Hispanic, Latino/a/x, or Spanish origin?
+                    </strong> </p>
+                    <p><input type="radio" name="hispanic" value="yes" required> Yes </p>
+                    <p><input type="radio" name="hispanic" value="no" required> No </p>
+                    <p><input type="radio" name="hispanic" value="nosay" required> Prefer not to say</p>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>Thinking about your current close relationships (e.g., roommates, close friends, family members, romantic partners), how many people are identified as each of the following groups?</strong></p>
+
+                    <table class="q5-table">
+                        <colgroup>
+                            <col style="width: 9%;">
+                            <col style="width: 13%;">
+                            <col style="width: 13%;">
+                            <col style="width: 13%;">
+                            <col style="width: 13%;">
+                            <col style="width: 13%;">
+                            <col style="width: 13%;">
+                            <col style="width: 13%;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="group-header">Group</th>
+                                <th>None<br>(~0%)</th>
+                                <th>Very few<br>(~10%)</th>
+                                <th>A few<br>(~30%)</th>
+                                <th>Some/Half<br>(~50%)</th>
+                                <th>Moderately<br>(~70%)</th>
+                                <th>Many<br>(~90%)</th>
+                                <th>Almost all<br>(~100%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="group-header">White</td>
+                                <td><input type="radio" name="close_white" value="0"></td>
+                                <td><input type="radio" name="close_white" value="10"></td>
+                                <td><input type="radio" name="close_white" value="30"></td>
+                                <td><input type="radio" name="close_white" value="50"></td>
+                                <td><input type="radio" name="close_white" value="70"></td>
+                                <td><input type="radio" name="close_white" value="90"></td>
+                                <td><input type="radio" name="close_white" value="100"></td>
+                            </tr>
+                            <tr>
+                                <td class="group-header">Asian</td>
+                                <td><input type="radio" name="close_asian" value="0"></td>
+                                <td><input type="radio" name="close_asian" value="10"></td>
+                                <td><input type="radio" name="close_asian" value="30"></td>
+                                <td><input type="radio" name="close_asian" value="50"></td>
+                                <td><input type="radio" name="close_asian" value="70"></td>
+                                <td><input type="radio" name="close_asian" value="90"></td>
+                                <td><input type="radio" name="close_asian" value="100"></td>
+                            </tr>
+                            <tr>
+                                <td class="group-header">Black</td>
+                                <td><input type="radio" name="close_black" value="0"></td>
+                                <td><input type="radio" name="close_black" value="10"></td>
+                                <td><input type="radio" name="close_black" value="30"></td>
+                                <td><input type="radio" name="close_black" value="50"></td>
+                                <td><input type="radio" name="close_black" value="70"></td>
+                                <td><input type="radio" name="close_black" value="90"></td>
+                                <td><input type="radio" name="close_black" value="100"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>How often have you had meaningful interactions with individuals from the following groups during each stage of your life?</strong></p>
+                    <p><i>Please exclude close friends and family - consider interactions with neighbors, classmates, friends, coworkers, and others in social or community settings.</i></p>
+                    <p><i>(1 = Never, 2 = Rarely, 3 = Sometimes/Occasionally, 4 = Often, 5 = Very Frequently/Always)</i></p>
+                    <table>
+                        <colgroup>
+                            <col style="width: 13%;">
+                            <col style="width: 29%;">
+                            <col style="width: 29%;">
+                            <col style="width: 29%;">
+                        </colgroup>
+                        <tr>
+                            <th>Group</th>
+                            <th>Childhood</th>
+                            <th>Adolescence</th>
+                            <th>Adulthood</th>
+                        </tr>
+
+                        <!-- WHITE -->
+                        <tr>
+                        <td>White</td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="white_childhood" value="1" required> 1 </label>
+                            <label><input type="radio" name="white_childhood" value="2" required> 2 </label>
+                            <label><input type="radio" name="white_childhood" value="3" required> 3 </label>
+                            <label><input type="radio" name="white_childhood" value="4" required> 4 </label>
+                            <label><input type="radio" name="white_childhood" value="5" required> 5 </label>
+                        </td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="white_adolescence" value="1" required> 1 </label>
+                            <label><input type="radio" name="white_adolescence" value="2" required> 2 </label>
+                            <label><input type="radio" name="white_adolescence" value="3" required> 3 </label>
+                            <label><input type="radio" name="white_adolescence" value="4" required> 4 </label>
+                            <label><input type="radio" name="white_adolescence" value="5" required> 5 </label>
+                        </td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="white_adulthood" value="1" required> 1 </label>
+                            <label><input type="radio" name="white_adulthood" value="2" required> 2 </label>
+                            <label><input type="radio" name="white_adulthood" value="3" required> 3 </label>
+                            <label><input type="radio" name="white_adulthood" value="4" required> 4 </label>
+                            <label><input type="radio" name="white_adulthood" value="5" required> 5 </label>
+                        </td>
+                        </tr>
+
+                        <!-- ASIAN -->
+                        <tr>
+                        <td>Asian</td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="asian_childhood" value="1" required> 1 </label>
+                            <label><input type="radio" name="asian_childhood" value="2" required> 2 </label>
+                            <label><input type="radio" name="asian_childhood" value="3" required> 3 </label>
+                            <label><input type="radio" name="asian_childhood" value="4" required> 4 </label>
+                            <label><input type="radio" name="asian_childhood" value="5" required> 5 </label>
+                        </td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="asian_adolescence" value="1" required> 1 </label>
+                            <label><input type="radio" name="asian_adolescence" value="2" required> 2 </label>
+                            <label><input type="radio" name="asian_adolescence" value="3" required> 3 </label>
+                            <label><input type="radio" name="asian_adolescence" value="4" required> 4 </label>
+                            <label><input type="radio" name="asian_adolescence" value="5" required> 5 </label>
+                        </td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="asian_adulthood" value="1" required> 1 </label>
+                            <label><input type="radio" name="asian_adulthood" value="2" required> 2 </label>
+                            <label><input type="radio" name="asian_adulthood" value="3" required> 3 </label>
+                            <label><input type="radio" name="asian_adulthood" value="4" required> 4 </label>
+                            <label><input type="radio" name="asian_adulthood" value="5" required> 5 </label>
+                        </td>
+                        </tr>
+
+                        <!-- BLACK -->
+                        <tr>
+                        <td>Black</td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="black_childhood" value="1" required> 1 </label>
+                            <label><input type="radio" name="black_childhood" value="2" required> 2 </label>
+                            <label><input type="radio" name="black_childhood" value="3" required> 3 </label>
+                            <label><input type="radio" name="black_childhood" value="4" required> 4 </label>
+                            <label><input type="radio" name="black_childhood" value="5" required> 5 </label>
+                        </td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="black_adolescence" value="1" required> 1 </label>
+                            <label><input type="radio" name="black_adolescence" value="2" required> 2 </label>
+                            <label><input type="radio" name="black_adolescence" value="3" required> 3 </label>
+                            <label><input type="radio" name="black_adolescence" value="4" required> 4 </label>
+                            <label><input type="radio" name="black_adolescence" value="5" required> 5 </label>
+                        </td>
+                        <td class="rating-group">
+                            <label><input type="radio" name="black_adulthood" value="1" required> 1 </label>
+                            <label><input type="radio" name="black_adulthood" value="2" required> 2 </label>
+                            <label><input type="radio" name="black_adulthood" value="3" required> 3 </label>
+                            <label><input type="radio" name="black_adulthood" value="4" required> 4 </label>
+                            <label><input type="radio" name="black_adulthood" value="5" required> 5 </label>
+                        </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        Rank how often you see or engage with people from these groups through entertainment, social media, or public figures:
+                    </strong> </p>
+                    <p><i> (1 = most often) You may assign the same rank to more than one group if they are equally frequent.</i></p>
+                    <p><input type="number" name="entertainment_white" min="1" max="3" required> White </p>
+                    <p><input type="number" name="entertainment_black" min="1" max="3" required> Black </p>
+                    <p><input type="number" name="entertainment_asian" min="1" max="3" required> Asian </p>
+                </div>
+                <br>
+                `);
+            },
+            data: {
+                task: 'demographic_survey_p2',
+            }
+        };
+
+        var likert_scale = [
+            "Strongly Disagree",
+            "Disagree",
+            "Somewhat Disagree",
+            "Neutral",
+            "Somewhat Agree",
+            "Agree",
+            "Strongly Agree"
+        ];
+
+        var race_ideology_trials = {
+            type: jsPsychSurveyLikert,
+            preamble: `<p align="left" style="font-size: 14pt; text-decoration: underline">(Page 3/4) Please indicate how much you agree or disagree with the following statements:</p>`,
+            questions:[
+                {prompt: `<p align="left" style="font-size:14pt;"><strong>When the only thing you know about someone is their race, it makes sense to use your knowledge of their racial group to form an impression of them.</strong></p>`, name:"Bayesian_Racism_Scale", labels: likert_scale, required: true},
+                {prompt: `<p align="left" style="font-size:14pt;"><strong>I tend to notice someone's race before other features.</strong></p>`, name:"Custom", labels: likert_scale, required: true},
+                {prompt: `<p align="left" style="font-size:14pt;"><strong>When I interact with other people I try not to even notice the color of their skin.</strong></p>`, name:"colorblind", labels: likert_scale, required: true},
+                {prompt: `<p align="left" style="font-size:14pt;"><strong>To a large extent, a person's race biologically determines his or her abilities and traits.</strong></p>`, name:"lay_theory_1", labels: likert_scale, required: true},
+                {prompt: `<p align="left" style="font-size:14pt;"><strong>How a person is like (e.g., his or her abilities, traits) is deeply ingrained in his or her race. It cannot be changed much.</strong></p>`, name:"lay_theory_3", labels: likert_scale, required: true},
+                {prompt: `<p align="left" style="font-size:14pt;"><strong>Racial categories are constructed totally for economic, political, and social reasons. If the socio-political situation changes, the racial categories will change as well.</strong></p>`, name:"lay_theory_6", labels: likert_scale, required: true},
+                {prompt: `<p align="left" style="font-size:14pt;"><strong>Race does not have an inherent biological basis, and thus can be changed.</strong></p>`, name:"lay_theory_7", labels: likert_scale, required: true},
+            ],
+            randomize_question_order: true,
+            data: {
+                task: 'race_ideology_trials',
+            }
+        };
+
+        var instruction_race_thermometer = {
+            type: jsPsychHtmlButtonResponse,
+            stimulus:
+                `<p align="left">(Page 4/4) For the last three questions, please rate your feelings toward each group - White, Black, and Asian - on a scale from 0 (Very Cold or Unfavorable) to 100 (Very Warm or Favorable).</p>
+                <p align="left">NOTE: You must move the slider to continue to the next question. The slider starts at 50, so if your answer is 50, please move the slider and then return it to 50 to proceed.</p>
+                `,
+            choices:['Continue'],
+            data: {
+                task: 'instruction_race_thermometer',
+            },
+        };
+
+        var thermometer_label = [
+            '0<br>Very Cold/Unfavorable', 
+            '25<br>Fairly Cold/Unfavorable', 
+            '50<br>Neither Cold nor Warm',
+            '75<br>Fairly Warm/Favorable',
+            '100<br>Very Warm/Favorable'
+        ];
+
+        var races = [
+            {race:"White", task_name:"race_therm_white"},
+            {race:"Black", task_name:"race_therm_black"},
+            {race:"Asian", task_name:"race_therm_asian"},
+        ];
+
+        var race_thermometer_trial= {
+            type: jsPsychHtmlSliderResponse,
+            stimulus: function(){
+            return `<div>
+                <p>Please rate your overall feelings toward the following racial group:</p><p><strong>` + jsPsych.timelineVariable('race') + `</strong></p>
+                </div>`
+            },
+            require_movement: true,
+            labels: thermometer_label,
+            data: {
+                task: jsPsych.timelineVariable('task_name')
+            },
+        };
+
+        var race_therm_timeline = {
+            timeline: [race_thermometer_trial],
+            timeline_variables: races,
+            randomize_order: true,
+        }
+
+        var feedback_page = {
+            type: jsPsychSurveyHtmlForm,
+            button_label: 'Continue',
+            html: function() {
+                return (` 
+                <p align="center" style="font-size: 16pt; font-weight: bold">Thank you for completing this study!<br> 
+                <div class="surveyQuestion">
+                    <p><strong>In which aspects do you think this study could be improved?</strong></p>
+                    <p><i>Your answer will help us improve this study for the next participant.</i></p>
+                    <textarea name="feedback" rows="3" cols="60" required></textarea>
+	            </div>
+
+                <div class="surveyQuestion">
+                    <p><strong>
+                        What web browser (Chrome, Safari, Firefox, etc) are you using to complete this study?
+                    </strong> </p>
+                    <p><input type="text" name="browser" required></p>
+                </div>
+                <br>`);
+            },
+            data: {
+                task: 'feedback_page',
+            }
+        };
+        
+        /* add all trials to timeline, make sure the order matches the description in the instructions */
+        timeline.push(demographic_survey_p1); 
+        timeline.push(demographic_survey_p2);
+        timeline.push(race_ideology_trials);
+        timeline.push(instruction_race_thermometer);
+        timeline.push(race_therm_timeline);
+        timeline.push(feedback_page);
+
+        /* end of study page, redirect to a completion URL, make sure to update the link below */
+        var end_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function() {
+                return `<p align="center" style="font-size: 16pt; font-weight: bold">Thank you for participating!</p>
+                    <p align="center"> We truly appreciate your time and contribution to our research. Your response will help us better understand how people perceive others.</p>
+                    <p align="center">To confirm your completion of the study, please click the button below to proceed to the completion page, which will record your completion automatically on Connect.</p>
+                    <p align="center"><i>(Optional) Copy down this completion code for your own records:<strong>XXXXXXXXXTBD</strong></i></p>
+                    <button class="jspsych-btn" id="jspsych-resize-btn" onclick="location.href='https://connect.cloudresearch.com/participant/project/XXXXXXXXXXXX/complete'" type='button'><b style="color:red">Completion Page (please update this link to your own completion link)</b></button>`;
+            },
+            choices: "NO_KEYS",
+            on_start: function() {
+                var date_time = new Date();
+                // save data with a customized filename that encode participant ID and date time
+                saveData(Participant_id + "_questionnaire_ "  + date_time.getUTCFullYear() + "y_" + (date_time.getUTCMonth()+1) + "mon_" + date_time.getUTCDate() + "d_" + date_time.getUTCHours() + "h_" + date_time.getUTCMinutes() + "min", jsPsych.data.get().csv());
+                // save event data with a customized filename that encode participant ID and date time
+                saveData("Event_" + Participant_id+ "_questionnaire_ " + date_time.getUTCFullYear() + "y_" + (date_time.getUTCMonth()+1) + "mon_" + date_time.getUTCDate() + "d_" + date_time.getUTCHours() + "h_" + date_time.getUTCMinutes() + "min", jsPsych.data.getInteractionData().csv());
+            }
+        };
+        timeline.push(end_trial);
+
+        /* function to save data */
+        function saveData(name, data){
+            var xhr = new XMLHttpRequest(); 
+            xhr.open('POST', 'write_data.php'); 
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({filename: name, filedata: data}));
+        };
+
+        /* function to enable/disable rank input based on checkbox */
+        function toggleRank(checkboxId, inputId) {
+            const checkbox = document.getElementById(checkboxId);
+            const input = document.getElementById(inputId);
+            if (checkbox.checked) {
+                input.disabled = false;
+                input.required = true;
+            } else {
+                input.disabled = true;
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        jsPsych.run(timeline);
+
+    </script>
+</html>

@@ -1,0 +1,355 @@
+<!--
+  File: Stage1_Part1_intro-and-calibration.html
+  Purpose: Participants will read the consent form and complete a short screen calibration in order to measure the actual physical screen sizes of the participants' laptops/computers. Participants with small screens and using mobile devices will be excluded at this stage. This webpage is the first part of Stage 1 prescreening, and connects to the Cambridge Face Memory Test hosted on another website.
+  Author: Yue Xu, yxu7@caltech.edu
+  Last Updated: November 5, 2025
+  Notes:
+    - The functions (each often defines a webpage) are organized in timeline order of the experiment. 
+    - This file saves a data file as csv and an event data file that saves participants' actions to focus on the current webppage or move to other webpages. The event data file will be empty if the participant did not move away from the experiment webpage.
+-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MA_qualification_task</title>
+        <script src="jspsych-7.2.3/jspsych.js"></script>
+        <script src="jspsych-7.2.3/plugin-html-keyboard-response.js"></script>
+        <script src="jspsych-7.2.3/plugin-html-button-response.js"></script>
+        <script src="jspsych-7.2.3/plugin-survey-text.js"></script>
+        <script src="jspsych-7.2.3/plugin-fullscreen.js"></script>
+        <script src="jspsych-7.2.3/plugin-browser-check.js"></script>
+        <script src="jspsych-7.2.3/plugin-resize.js"></script>
+        <link href="jspsych-7.2.3/jspsych.css" rel="stylesheet" type="text/css">
+        <style type="text/css">
+        .jspsych-display-element {
+            color: black;
+            background-color: rgb(221,221,221);
+        }
+
+        /* center the content */
+        .jspsych-content {
+            width: 900px;
+            margin-left: auto; 
+            margin-right: auto;
+        }
+
+        /* highlight the resize handle in orange */
+        #jspsych-resize-handle {
+            background-color: orange !important;
+        }
+
+        </style>
+    </head>
+    <body>
+    </body>
+    <script type="text/javascript">
+
+        // we are now excluding based on screen size
+        var screen_minimum_diag = 7; //minimum diagonal length of the screen in inches
+        // make sure the starting size in calibration is larger than minimum, so the participants have to adjust the box in order to pass
+        var calibration_starting_size_buffer = 10; //inches, how much larger than minimum
+
+        /* create timeline */
+        var timeline = [];
+
+        /* start the experiment */
+        var jsPsych = initJsPsych();
+
+        /* variables to store URL parameters and other info */
+        var if_mobile = false;
+        var if_fullscreen = true;
+        var fwp;
+        var dpi;
+        var fullwidth_px;
+        var fullheight_px;
+        var diag_px;
+        var diag_inches;
+        var calibration_starting_size;
+        var Participant_id_from_URL;
+        var Assignment_id_from_URL;
+        var Project_id_from_URL;
+        var Participant_id;
+
+        var url = window.location.href;
+
+        var start_time = new Date();
+
+        /* get URL parameters */
+        var Participant_id_from_URL = jsPsych.data.getURLVariable('participantId');
+        if (typeof Participant_id_from_URL === "undefined") {
+            Participant_id_from_URL = "ParticipantIDnotValid";
+        }
+
+        var Assignment_id_from_URL = jsPsych.data.getURLVariable('assignmentId');
+        if (typeof Assignment_id_from_URL === "undefined") {
+            Assignment_id_from_URL = "AssignmentIDnotValid";
+        }
+
+        var Project_id_from_URL = jsPsych.data.getURLVariable('projectId');
+        if (typeof Project_id_from_URL === "undefined") {
+            Project_id_from_URL = "ProjectIDnotValid";
+        }
+
+        /* define welcome message trial, requires "task_consent.pdf" */
+        var welcome_consent = {
+            type: jsPsychSurveyText,
+            questions:[
+                {prompt: `
+                <p style="font-size:130%" ><b>Welcome to the study!</b></p>
+                <p align="left">This study requires a DESKTOP or LAPTOP to complete, using a tablet or a cellphone will not work. <span style='color:red'> Please do not refresh the webpage or go back to previous webpages during the entire experiment. </span></p>
+                <p align="left">Please read the consent information below carefully. By entering your Connect Participant ID and clicking the "confirm" button, you acknowledge that you have read and agree to the terms described in the document. </p>
+                <p align="left">By agreeing to participate, you also confirm that you are 18 years of age or older and have normal or corrected-to-normal vision.</p>
+                <div style = "position: relative; overflow: hidden; width:100%; padding-top: 48%;">
+                    <embed src="task_consent.pdf" style="position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%" type="application/pdf">
+                </div>
+                <p><b>Your Connect Participant ID:</b></p>`,
+                name: 'participant_id', 
+                required: true, 
+                },
+            ],
+            button_label: 'Confirm',
+            data: {
+                task: 'welcome',
+                /* save URL parameters */
+                Participant_id_from_URL: Participant_id_from_URL,
+                Assignment_id_from_URL: Assignment_id_from_URL,
+                Project_id_from_URL: Project_id_from_URL,
+                devicePixelRatio: function() {
+                    return window.devicePixelRatio;
+                },
+                url: url,
+                start_time: start_time.toUTCString(),
+            },
+            on_finish: function() {
+                var id_response = jsPsych.data.get().last(1).values()[0].response;
+                Participant_id = id_response['participant_id'];
+            }
+        };
+        timeline.push(welcome_consent);
+
+
+        /* do browser check before entering fullscreen */
+        var BC_before_fullscreen = {
+            type: jsPsychBrowserCheck,
+            data: {
+                task: 'BC_before_fullscreen',
+                devicePixelRatio: function() {
+                    return window.devicePixelRatio;
+                },
+            }
+        };
+        timeline.push(BC_before_fullscreen);
+
+        /* This fullscreen doesn't work on safari, and may close all tabs on some browser*/
+        var full_screen = {
+            type: jsPsychFullscreen,
+            fullscreen_mode: true,
+            message: `<p align='left' style='font-size: 130%;'>The experiment will switch to full screen mode when you press the button below.</p>
+            `,
+            data: {
+                task: 'fullscreen',
+            }
+        };
+        timeline.push(full_screen);
+
+        /* instruction prompt if fullscreen fails */
+        var instruction_to_fullscreen = {
+            type: jsPsychHtmlButtonResponse,
+            stimulus:`<p align="center" style="font-size: 130%;"><b>Full Screen Setting</b></p>
+                <p align="center">The experiment failed to automatically switch to full screen. Please manually switch to full-screen mode.</p>
+                <p align="center">Full-screen keyboard shortcuts:
+                <p align="center">for Windows/Linux, press "F11" or press "Fn" + "F11" simultaneously;</p>
+                <p align="center">for Mac, press "Ctrl" + "Command" + "F" simultaneously.</p> 
+                `,
+            choices: ['Continue'],
+            data: {
+                task: "instruction_to_fullscreen",
+            }
+        };
+
+        /* conditional to check if fullscreen was successful */
+        var if_not_fullscreen = {
+            timeline: [instruction_to_fullscreen],
+            conditional_function: function(){
+                if_fullscreen = jsPsych.data.get().last(2).values()[0].fullscreen;
+                return !if_fullscreen;
+            }
+        };
+        timeline.push(if_not_fullscreen);
+
+        /* do browser check after entering fullscreen */
+        var BC_after_fullscreen = {
+            type: jsPsychBrowserCheck,
+            data: {
+                task: 'BC_after_fullscreen',
+                devicePixelRatio: function() {
+                    return window.devicePixelRatio;
+                },
+            },
+        };
+        timeline.push(BC_after_fullscreen);
+
+        var calibration = {
+            type: jsPsychResize,
+            // width and height determine the aspect ratio
+            item_width: 3 + 3/8, // inches (any units)
+            item_height: 2 + 1/8, // inches (any units)
+            prompt: `
+                <p align="left">Before starting the experiment, please complete this calibration task following the instructions below.</p>
+                <p align="left"><b>Step 1:</b> Find a bank card, ID card, or other card with the standard card size (3<sup>3</sup>/<sub>8</sub> x 2<sup>1</sup>/<sub>8</sub> inches).</p>
+                <p align="left"><b>Step 2:</b> Hold the card against the screen.</p>
+                <p align="left"><b>Step 3:</b> Click and drag the <b style="color:orange">orange square</b> at the lower right corner of the blue box below until the box is the same size as the card.</p>
+                <p align="left"><b>Step 4:</b> Click "Continue" below to confirm.</p>
+                `,
+            // starting_size: 200, // in pixels, along the largest dimensions
+            starting_size: function() {
+                fullwidth_px = jsPsych.data.get().last(1).values()[0].width;
+                fullheight_px = jsPsych.data.get().last(1).values()[0].height;
+                diag_px = Math.sqrt(fullwidth_px**2 + fullheight_px**2);
+                calibration_starting_size = Math.ceil(diag_px*((3 + 3/8)/screen_minimum_diag) + calibration_starting_size_buffer);
+                return calibration_starting_size;
+            },
+
+            data: {
+                task: 'calibration',
+                calibration_starting_size: function() {
+                    return calibration_starting_size;
+                },
+
+                devicePixelRatio: function() {
+                    return window.devicePixelRatio;
+                },
+            },
+        };
+        timeline.push(calibration);
+
+        /* We don't exit full screen since it will automatically exit after link */
+        // var exit_full_screen = {
+        //     type: jsPsychFullscreen,
+        //     fullscreen_mode: false
+        // };
+        // timeline.push(exit_full_screen);
+        
+        /* exclude participants if using mobile devices */
+        var exclude = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function() {
+                // console.log("inside exclude, if_mobile = " + if_mobile);
+                if (if_mobile) {
+                    return `<p><b>Thank you for completing the calibration task!</b></p>
+                        <p> Unfortunately you will not be moving forward to start the experiment because this experiment is not designed to work on a mobile device. </p>
+                        <p> We appreciate your interest and invite you to try again on a desktop or laptop. </p>
+                        <p> This is the end of the study. You may close this browser window at any time.</p>`;
+                } else {
+                    return `<p><b>Thank you for completing the calibration task!</b></p>
+                        <p> Unfortunately, your screen size does not meet the minimum requirements for participating in this study.</p>
+                        <p> We appreciate your interest and invite you to try again on a desktop/laptop with a larger screen. </p>
+                        <p> This is the end of the study. You may close this browser window at any time.</p>`;
+                }
+            },
+            choices: "NO_KEYS",
+            on_start: function() {
+                var date_time = new Date();
+                // data
+                saveData(Participant_id + "_intro_excluded_" + date_time.getUTCFullYear() + "y_" + (date_time.getUTCMonth()+1) + "mon_" + date_time.getUTCDate() + "d_" + date_time.getUTCHours() + "h_" + date_time.getUTCMinutes() + "min", jsPsych.data.get().csv());
+                // event
+                saveData("Event_" + Participant_id + "_intro_excluded_" + date_time.getUTCFullYear() + "y_" + (date_time.getUTCMonth()+1) + "mon_" + date_time.getUTCDate() + "d_" + date_time.getUTCHours() + "h_" + date_time.getUTCMinutes() + "min", jsPsych.data.getInteractionData().csv());
+            },
+        };
+
+        /* conditional to exclude small screens, compute physical screen size */
+        var if_smallscreen = {
+            timeline: [exclude],
+            conditional_function: function(){
+                // need to reset the scale because the scale factor was changed in calibration
+                document.getElementById("jspsych-content").style.transform = "scale(" + 1.0 + ")";
+
+                // now excluding participants based on screen-size
+                fwp = jsPsych.data.get().last(1).values()[0].final_width_px; // from "calibration"
+                dpi = fwp/(3 + 3/8);
+                fullwidth_px = jsPsych.data.get().last(2).values()[0].width;
+                fullheight_px = jsPsych.data.get().last(2).values()[0].height;
+                diag_px = Math.sqrt(fullwidth_px**2 + fullheight_px**2);
+                diag_inches = diag_px/dpi;
+
+                if_mobile = jsPsych.data.get().last(2).values()[0].mobile;
+
+                return diag_inches <= screen_minimum_diag || if_mobile;
+            }
+        };
+        timeline.push(if_smallscreen);
+
+        /* instruction for the next part of the experiment */
+        var instruction = {
+            type: jsPsychHtmlButtonResponse,
+            stimulus:`<p align="center" style="font-size: 130%;"><b>Experiment Instructions</b></p>
+                <p align="left">This research study is about understanding how people form impressions of others based on faces. This study has two stages. This is <b>Stage 1</b>.</p>
+                <p align="left"><b>Stage 1</b> takes around 15 minutes and pays $3.75 for your participation. If you pass an assessment in <b>Stage 1</b>, you will advance to <b>Stage 2</b>. <b>Stage 2</b> takes around 37 minutes and pays $9.25 for your participation.</p>
+                <p align="left"><b>Thus you will be paid $13 in total for completing both stages. Please make sure that you have enough time (~52min) without interruption for both stages before continuing!</b></p> 
+                `,
+            choices: ['Continue'],
+            data: {
+                /* save calibration info */
+                devicePixelRatio: function() {
+                    return window.devicePixelRatio;
+                },
+                fwp: function() {
+                    return fwp;
+                },
+                dpi: function() {
+                    return dpi;
+                },
+                fullwidth_px: function() {
+                    return fullwidth_px;
+                },
+                fullheight_px: function() {
+                    return fullheight_px;
+                },
+                diag_px: function() {
+                    return diag_px;
+                },
+                diag_inches: function() {
+                    return diag_inches;
+                },
+                if_mobile: function() {
+                    return if_mobile.toString();
+                },
+            },
+        };
+        timeline.push(instruction);
+
+        /* end of Stage 1 Part 1, link to Cambridge Face Memory Test, need to modify the testable URL */
+        var end_instruction = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function() {
+                var html = `<p align="center" style="font-size: 130%;"><b>Experiment Instructions</b></p>
+                <p align="left">What to expect in this <b>Stage 1</b> of the study:
+                <li align="left"> You will begin with the Cambridge Face Memory Test, which assesses your ability to recognize and remember faces.</li>
+                <li align="left"> Next, you will read a set of instructions for the main task in <b>Stage 2</b>, followed by a short quiz to check your understanding of these instructions. </li></p>
+                <p align="left">If you pass both the Cambridge Face Memory Test and the instruction quiz, you will advance to <b>Stage 2</b>.</p> 
+                <button class="jspsych-btn" id="jspsych-resize-btn" onclick="location.href='https://www.testable.org/experiment/XXXXX/XXXXX/start?participantId=` + Participant_id + `&assignmentId=` + Assignment_id_from_URL + `&projectId=` + Project_id_from_URL +`'" type='button'>Enter Cambridge Face Memory Test <b style="color:red">(make sure to update this link to your valid task link)</b></button>
+                       `;
+                return html;
+            },
+            choices: "NO_KEYS",
+            on_start: function() {
+                var date_time = new Date();
+                // save data with a customized filename that encode participant ID and date time
+                saveData(Participant_id + "_intro_" + date_time.getUTCFullYear() + "y_" + (date_time.getUTCMonth()+1) + "mon_" + date_time.getUTCDate() + "d_" + date_time.getUTCHours() + "h_" + date_time.getUTCMinutes() + "min", jsPsych.data.get().csv());
+                // save event data with a customized filename that encode participant ID and date time
+                saveData("Event_" + Participant_id + "_intro_" + date_time.getUTCFullYear() + "y_" + (date_time.getUTCMonth()+1) + "mon_" + date_time.getUTCDate() + "d_" + date_time.getUTCHours() + "h_" + date_time.getUTCMinutes() + "min", jsPsych.data.getInteractionData().csv());
+            },
+        };
+        timeline.push(end_instruction);
+
+        function saveData(name, data){
+            var xhr = new XMLHttpRequest(); 
+            xhr.open('POST', 'write_data.php'); 
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({filename: name, filedata: data}));
+        };
+
+        jsPsych.run(timeline);
+
+    </script>
+</html>
