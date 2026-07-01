@@ -1,6 +1,6 @@
 # Trait Judgements of Faces - Online Experiment
 
-By **Yue Xu** · <yxu7@caltech.edu>
+By **Yue Xu** · <hyue.xu@gmail.com>
 
 _Last verified: **Nov 10, 2025**_
 
@@ -126,6 +126,6 @@ If you use this experiment framework or adapt its code, please cite the associat
 ---
 
 ## Contact
-Yue Xu: **yxu7@caltech.edu**
+Yue Xu: **hyue.xu@gmail.com**
 
 
